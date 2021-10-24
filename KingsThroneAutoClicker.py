@@ -6,6 +6,7 @@ import threading
 mutex = threading.Lock()
 
 def main():
+    time.sleep(10)
     calibrate = pyautogui.locateAllOnScreen("Calibrate.png", confidence=0.95)
     kingdom = pyautogui.locateAllOnScreen("Kingdom.png", confidence=0.95)
     kingdomList = []
@@ -37,7 +38,6 @@ def run(top, left, width, height, threadIndex):
     pyautogui.FAILSAFE = False
     startTime = time.time()
     whatNow = "chancelor"
-    time.sleep(10)
     while (True):
         print (str(threadIndex) + " " + whereAmI + " -> " + whatNow)
         time.sleep(3)
