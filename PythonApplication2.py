@@ -5,7 +5,7 @@ import threading
 
 mutex = threading.Lock()
 
-actionOrder = { "chancelor" : "advisor", "advisor" : "procession", "procession" : "maidens", "maidens" : "chancelor" }
+actionOrder = { "chancelor" : "advisor", "advisor" : "processions", "processions" : "maidens", "maidens" : "kingdom", "kingdom" : "chancelor" }
 
 def main():
     time.sleep(10)
@@ -39,13 +39,13 @@ def run(top, left, width, height, threadIndex):
     whereAmI = "courtyard"
     pyautogui.FAILSAFE = False
     startTime = time.time()
-    whatNow = "chancelor"
+    whatNow = "kingdom"
     while (True):
         print (str(threadIndex) + " " + whereAmI + " -> " + whatNow)
         time.sleep(3)
         if whereAmI is "chancelor":
             if whatNow is "chancelor":
-                chancelor(region, whatNow)
+                whatNow = chancelor(region, whatNow)
                 continue
             else:
                 pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
@@ -82,7 +82,7 @@ def run(top, left, width, height, threadIndex):
                     continue
         if whereAmI is "advisor":
             if whatNow is "advisor":
-                advisor(region, whatNow)
+                whatNow = advisor(region, whatNow)
             else:
                 pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
                 if pos is not None:
@@ -100,7 +100,7 @@ def run(top, left, width, height, threadIndex):
                     mutex.release()
                     whereAmI = "throne room"
                     continue
-            if whatNow is "processions":
+            elif whatNow is "processions":
                 pos = pyautogui.locateOnScreen('Processions.png', confidence=(0.7), region=region)
                 if pos is not None:
                     mutex.acquire()
@@ -108,7 +108,7 @@ def run(top, left, width, height, threadIndex):
                     mutex.release()
                     whereAmI = "procession"
                     continue
-            if whatNow is "maidens":
+            elif whatNow is "maidens":
                 pos = pyautogui.locateOnScreen('MaidenChambers.png', confidence=(0.7), region=region)
                 if pos is not None:
                     mutex.acquire()
@@ -116,9 +116,19 @@ def run(top, left, width, height, threadIndex):
                     mutex.release()
                     whereAmI = "chambers"
                     continue
+            elif whatNow is "kingdom":
+                pos = pyautogui.locateOnScreen('Kingdom.png', confidence=(0.7), region=region)
+                if pos is not None:
+                    mutex.acquire()
+                    pyautogui.click(pos)
+                    mutex.release()
+                    whereAmI = "kingdom"
+                    continue
+                else:
+                    whatNow = actionOrder["kingdom"]
         if whereAmI is "procession":
             if whatNow is "processions":
-                processions(region, whatNow)
+                whatNow = processions(region, whatNow)
             else:
                 pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
                 if pos is not None:
@@ -147,7 +157,7 @@ def run(top, left, width, height, threadIndex):
                     continue
         if whereAmI is "maidens":
             if whatNow is "maidens":
-                maidens(region, whatNow)
+                whatNow = maidens(region, whatNow, top, left)
             else:
                 pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
                 if pos is not None:
@@ -155,14 +165,31 @@ def run(top, left, width, height, threadIndex):
                     pyautogui.click(pos)
                     mutex.release()
                     whereAmI = "chambers"
-                    whatNow = "chancelor"
                     continue
+        if whereAmI is "kingdom":
+            if whatNow is "kingdom":
+                whatNow = kingdom(region, whatNow)
+            else:
+                pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
+                if pos is not None:
+                    mutex.acquire()
+                    pyautogui.click(pos)
+                    mutex.release()
+                    time.sleep(1)
+                    pos = pyautogui.locateOnScreen('Back.png', confidence=(0.7), region=region)
+                    if pos is not None:
+                        mutex.acquire()
+                        pyautogui.click(pos)
+                        mutex.release()
+                        whereAmI = "courtyard"
+                        continue
+
 
 def chancelor(region, whatNow):
     NoCollectLeft = False
     NoRecruitLeft = False
     while not NoCollectLeft or not NoRecruitLeft:
-        pos = pyautogui.locateOnScreen('Collect.png', confidence=(0.7), region=region)
+        pos = pyautogui.locateOnScreen('Collect.png', confidence=(0.8), region=region)
         if pos is not None:
             posAll = pyautogui.locateOnScreen('CollectAll.png', confidence=(0.7), region=region)
             if posAll is not None:
@@ -186,7 +213,8 @@ def chancelor(region, whatNow):
             time.sleep(1)
         else:
             NoRecruitLeft = True
-    whatNow = actionOrder["chancelor"]
+    print("agter loop")
+    return actionOrder["chancelor"]
 
 def advisor(region, whatNow):
     checkAnother = True
@@ -228,7 +256,7 @@ def advisor(region, whatNow):
             mutex.release()
             checkAnother = True
             continue
-    whatNow = actionOrder["advisor"]
+    return actionOrder["advisor"]
 
 def processions(region, whatNow):
     pos = pyautogui.locateOnScreen('Processions2.png', confidence=(0.7), region=region)
@@ -244,9 +272,9 @@ def processions(region, whatNow):
             mutex.release()
             continue
         pos = pyautogui.locateOnScreen('Processions2.png', confidence=(0.7), region=region)
-    whatNow = actionOrder["processions"]
+    return actionOrder["processions"]
 
-def maidens(region, whatNow):
+def maidens(region, whatNow, top, left):
     pos = pyautogui.locateOnScreen('RandomVisit.png', confidence=(0.7), region=region)
     while pos is not None:
         mutex.acquire()
@@ -256,8 +284,77 @@ def maidens(region, whatNow):
         mutex.acquire()
         pyautogui.click(top + 10, left + 10)
         mutex.release()
+        time.sleep(1)
         pos = pyautogui.locateOnScreen('RandomVisit.png', confidence=(0.7), region=region)
-    whatNow = actionOrder["maidens"]
+    return actionOrder["maidens"]
+
+def kingdom(region, whatNow):
+    pos = pyautogui.locateOnScreen('KingdomCarriage.png', confidence=(0.7), region=region)
+    while pos is not None:
+        mutex.acquire()
+        pyautogui.click(pos)
+        mutex.release()
+        time.sleep(1)
+        pos = pyautogui.locateOnScreen('KingdomCarriage.png', confidence=(0.7), region=region)
+    pos = pyautogui.locateOnScreen('HumbermoorHighlands.png', confidence=(0.7), region=region)
+    if pos is not None:
+        mutex.acquire()
+        pyautogui.click(pos)
+        mutex.release()
+        time.sleep(1)
+        collect(region)
+    return actionOrder["kingdom"]
+
+def collect(region):
+    pos = pyautogui.locateOnScreen('Explore.png', confidence=(0.9), region=region)
+    if pos is not None:
+        mutex.acquire()
+        pyautogui.click(pos)
+        mutex.release()
+        time.sleep(1)
+    else:
+        return
+    pos = pyautogui.locateOnScreen('ClaimAll.png', confidence=(0.8), region=region)
+    if pos is not None:
+        mutex.acquire()
+        pyautogui.click(pos)
+        mutex.release()
+    claimed = pyautogui.locateAllOnScreen("GrayClaim.png", confidence=(0.9))
+    if len(list(claimed)) >= 2:
+        pos = pyautogui.locateOnScreen("RefreshQuest.png", confidence=(0.8))
+        if pos is not None:
+            mutex.acquire()
+            pyautogui.click(pos)
+            mutex.release()
+            time.sleep(1)
+    pos = pyautogui.locateAllOnScreen("Send.png", confidence=(0.95))
+    for p in pos:
+        mutex.acquire()
+        pyautogui.click(p)
+        mutex.release()
+        time.sleep(1)
+        pos = pyautogui.locateOnScreen("SendAll.png", confidence=(0.9))
+        if pos is not None:
+            mutex.acquire()
+            pyautogui.click(pos)
+            mutex.release()
+            time.sleep(1)
+        else:
+            continue
+        pos = pyautogui.locateOnScreen("QuestSend.png", confidence=(0.9))
+        if pos is not None:
+            mutex.acquire()
+            pyautogui.click(pos)
+            mutex.release()
+            time.sleep(1)
+        else:
+            continue
+        pos = pyautogui.locateOnScreen("QuestConfirm.png", confidence=(0.9))
+        if pos is not None:
+            mutex.acquire()
+            pyautogui.click(pos)
+            mutex.release()
+            time.sleep(2)
 
 if __name__ == "__main__":
     main()
